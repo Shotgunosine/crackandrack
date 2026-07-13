@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crack &amp; Rack — Trad Gear Trainer</title>
+  <!-- Inline favicon so the browser doesn't fire an (often warned-about) request over file:// -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%236b6157'/%3E%3Crect x='7' width='2' height='16' fill='%230b0d10'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="cal-banner" id="calBanner" hidden>
+    ⚠ Screen not calibrated — crack sizes are approximate.
+    <a href="#" data-goto="calibrate">Calibrate now</a>
+  </div>
+  <header class="topbar">
+    <h1><span class="title-full">Crack &amp; Rack</span><span class="title-short">C&amp;R</span></h1>
+    <nav class="tabs">
+      <button class="tab" data-view="play">Play</button>
+      <button class="tab" data-view="study">Study</button>
+      <button class="tab" data-view="calibrate">Calibrate</button>
+    </nav>
+    <select id="difficulty" class="diff-select" title="Difficulty">
+      <option value="easy">Easy</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button class="collapse-btn" id="collapseBtn" title="Collapse header" aria-label="Collapse header">▲</button>
+  </header>
+  <button class="expand-btn" id="expandBtn" title="Show header" aria-label="Show header">▾ menu</button>
+
+  <main>
+    <!-- ============ CALIBRATE ============ -->
+    <section class="view" id="view-calibrate">
+      <div class="panel">
+        <h2>Calibrate your screen</h2>
+        <p class="lede">
+          So cracks are shown at their true real-world size, tell the game how many
+          pixels equal one millimetre on <em>this</em> screen. Pick a method, match a
+          real object against the screen, then save.
+        </p>
+
+        <div class="seg">
+          <button class="seg-btn active" data-method="card">Credit card</button>
+          <button class="seg-btn" data-method="ruler">Ruler</button>
+        </div>
+
+        <!-- Credit card method -->
+        <div class="cal-method" id="method-card">
+          <p class="hint">
+            Hold a standard credit/ID card flat against the screen in
+            <em>portrait</em> (tall) orientation and drag the slider until the outline
+            exactly matches the card (54&nbsp;×&nbsp;85.6&nbsp;mm).
+          </p>
+          <div class="card-stage">
+            <div class="credit-card" id="creditCard">
+              <span class="card-note">↕ 85.6 mm</span>
+            </div>
+          </div>
+          <label class="slider-row">
+            Size
+            <input type="range" id="cardSlider" min="80" max="600" value="220" />
+          </label>
+        </div>
+
+        <!-- Ruler method -->
+        <div class="cal-method" id="method-ruler" hidden>
+          <p class="hint">
+            Hold a ruler along the line below. Adjust the slider until the line spans the
+            length you set here, then read it off your physical ruler to confirm.
+          </p>
+          <label class="slider-row">
+            Line length
+            <input type="number" id="rulerLen" min="20" max="300" step="5" value="100" /> mm
+          </label>
+          <div class="ruler-stage">
+            <div class="ruler-line" id="rulerLine"></div>
+          </div>
+          <label class="slider-row">
+            Size
+            <input type="range" id="rulerSlider" min="150" max="1400" value="500" />
+          </label>
+        </div>
+
+        <div class="cal-readout">
+          <strong id="pxPerMmOut">—</strong> px / mm
+          <span class="muted" id="dpiOut"></span>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="saveCal">Save calibration</button>
+          <button class="ghost" id="resetCal">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PLAY ============ -->
+    <section class="view" id="view-play" hidden>
+      <div class="wall">
+        <div class="hud hud-score">Score <strong id="score">0</strong></div>
+        <div class="hud hud-streak" id="streakBadge">Streak <strong id="streak">0</strong><span id="streakFlame"></span></div>
+        <div class="crack" id="crack"></div>
+        <div class="verdict" id="verdict" hidden></div>
+        <button class="wall-next" id="wallNext" title="Next crack" aria-label="Next crack" hidden>❯</button>
+      </div>
+
+      <p class="prompt">Which cam fits this crack?</p>
+
+      <div class="gear-grid" id="gearGrid"></div>
+
+      <div class="feedback" id="feedback" hidden>
+        <p class="feedback-text" id="feedbackText"></p>
+        <div class="range-chart" id="rangeChart"></div>
+        <button class="primary" id="nextRound">Next crack →</button>
+      </div>
+    </section>
+
+    <!-- ============ STUDY ============ -->
+    <section class="view" id="view-study" hidden>
+      <div class="panel">
+        <h2>Wild Country Friends 2026 — reference</h2>
+        <p class="lede">
+          Bars are drawn to true scale when your screen is calibrated. Notice how
+          neighbouring sizes overlap — that overlap is where placement judgement matters.
+        </p>
+        <div class="study-chart" id="studyChart"></div>
+        <table class="cam-table" id="camTable"></table>
+      </div>
+    </section>
+  </main>
+
+  <script src="cams.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
