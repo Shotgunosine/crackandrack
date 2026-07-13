@@ -262,6 +262,7 @@ function newRound() {
   $("feedback").hidden = true;
   $("verdict").hidden = true;
   $("wallNext").hidden = true;
+  hideGearNote();
 }
 
 function answer(cam) {
@@ -334,18 +335,20 @@ function renderGear(chosen) {
     const btn = el("button", "gear-btn");
     // Grey out cams too large to display on this screen — they're never an answer.
     const unavailable = !camDisplayable(i, maxMm);
-    if (unavailable) {
-      btn.classList.add("unavailable");
-      btn.disabled = true;
-      btn.title = cam.color + " — too large to show on this screen";
-    } else {
-      btn.title = cam.color;
-    }
+    btn.title = cam.color;
     btn.innerHTML =
       `<span class="swatch" style="background:${cam.colorHex}"></span>` +
       `<span class="gsize">#${cam.size}</span>`;
     if (unavailable) {
-      // leave disabled, no handler, no answer coloring
+      // Not truly disabled (disabled buttons swallow hover/click), so we can
+      // explain why on hover or tap instead of just ignoring the press.
+      btn.classList.add("unavailable");
+      btn.setAttribute("aria-disabled", "true");
+      const msg = `#${cam.size} (${cam.color}) won't fit on this screen at true size — ` +
+        `rotate to landscape or use a wider window to include it.`;
+      btn.addEventListener("mouseenter", () => showGearNote(msg));
+      btn.addEventListener("mouseleave", hideGearNote);
+      btn.addEventListener("click", () => showGearNote(msg, true));
     } else if (state.answered) {
       btn.disabled = true;
       if (cam === best) btn.classList.add("correct");
@@ -357,6 +360,21 @@ function renderGear(chosen) {
     }
     grid.appendChild(btn);
   });
+}
+
+// Explanation shown when an unavailable (too-large) cam is hovered or tapped.
+let gearNoteTimer = null;
+function showGearNote(msg, autoHide) {
+  clearTimeout(gearNoteTimer);
+  const note = $("gearNote");
+  note.textContent = "ℹ " + msg;
+  note.hidden = false;
+  // On tap (no hover-out on touch) auto-dismiss after a few seconds.
+  if (autoHide) gearNoteTimer = setTimeout(hideGearNote, 4000);
+}
+function hideGearNote() {
+  clearTimeout(gearNoteTimer);
+  $("gearNote").hidden = true;
 }
 
 /* ---------- feedback + range chart ---------- */
