@@ -316,6 +316,8 @@ button.ghost {
 .gear-btn.correct { border-color: var(--good); background: #1f3524; }
 .gear-btn.fits { border-color: #6ea36f; }
 .gear-btn.chosen-bad { border-color: var(--bad); background: #3a1f1f; }
+/* too large to display on this screen */
+.gear-btn.unavailable { opacity: 0.3; cursor: not-allowed; filter: grayscale(0.7); }
 
 /* ---------- feedback + range chart ---------- */
 .feedback { margin-top: 1rem; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; }

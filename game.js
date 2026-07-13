@@ -28,6 +28,7 @@ const state = {
 const SIMILAR_SPREAD = 1;    // cams within this many indices count as "similar"
 const MAX_SIMILAR_RUN = 3;   // most consecutive similar rounds before we force variety
 const HARD_ANGLE_MAX = 35;   // hard-mode cracks tilt up to ±this many degrees
+const DISPLAY_MARGIN = 0.82; // fraction of the wall a crack may span (leaves rock on both edges)
 
 // Streak "heats up" like a blackbody: dark → dull red → orange → yellow → white-hot,
 // indexed by streak (clamped to 10). At 10 a flame appears. [bg, dark-text?]
@@ -196,6 +197,18 @@ function initTabs() {
    ============================================================ */
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+// Largest crack (mm) whose full width fits the wall with rock visible on both edges.
+// Returns Infinity if the wall isn't laid out yet (e.g. play view hidden).
+function maxDisplayableMm() {
+  const wallPx = $("crack").parentElement.clientWidth;
+  if (!wallPx) return Infinity;
+  return (wallPx * DISPLAY_MARGIN) / effectivePxPerMm();
+}
+// A cam is "in play" on this screen if any of its answer-widths fits the wall.
+function camDisplayable(camIdx, maxMm) {
+  return BYCAM[state.difficulty][camIdx].some((w) => w <= maxMm);
+}
+
 // Weighted-random cam index, biased toward the least-shown sizes (1/(count+1)).
 // This self-balances over a session while still allowing occasional repeats.
 function weightedCam(achievable) {
@@ -210,7 +223,12 @@ function weightedCam(achievable) {
 // The run rule still caps consecutive similar sizes at MAX_SIMILAR_RUN; the first
 // draw is kept as a guaranteed fallback so the loop always terminates.
 function chooseTarget(diff) {
-  const achievable = ACHIEVABLE[diff];
+  // Restrict to widths that actually fit the wall; fall back to the unrestricted
+  // pool only if the screen is too small to show even the narrowest crack.
+  const maxMm = maxDisplayableMm();
+  let pools = BYCAM[diff].map((list) => list.filter((w) => w <= maxMm));
+  let achievable = pools.map((l, i) => (l.length ? i : -1)).filter((i) => i >= 0);
+  if (!achievable.length) { pools = BYCAM[diff]; achievable = ACHIEVABLE[diff]; }
   let camIdx = null, run = 1, fbIdx = null, fbRun = 1;
   for (let tries = 0; tries < 60; tries++) {
     const i = weightedCam(achievable);
@@ -224,7 +242,7 @@ function chooseTarget(diff) {
   state.lastBestIdx = camIdx;
   state.simRun = run;
   state.counts[camIdx] += 1;
-  const width = pick(BYCAM[diff][camIdx]);
+  const width = pick(pools[camIdx]);
   const angle = diff === "hard" ? (Math.random() * 2 - 1) * HARD_ANGLE_MAX : 0;
   return { width, best: CAMS[camIdx], angle };
 }
@@ -311,13 +329,24 @@ function renderGear(chosen) {
   const grid = $("gearGrid");
   grid.innerHTML = "";
   const { fitting, best } = state.target;
-  for (const cam of CAMS) {
+  const maxMm = maxDisplayableMm();
+  CAMS.forEach((cam, i) => {
     const btn = el("button", "gear-btn");
-    btn.title = cam.color;
+    // Grey out cams too large to display on this screen — they're never an answer.
+    const unavailable = !camDisplayable(i, maxMm);
+    if (unavailable) {
+      btn.classList.add("unavailable");
+      btn.disabled = true;
+      btn.title = cam.color + " — too large to show on this screen";
+    } else {
+      btn.title = cam.color;
+    }
     btn.innerHTML =
       `<span class="swatch" style="background:${cam.colorHex}"></span>` +
       `<span class="gsize">#${cam.size}</span>`;
-    if (state.answered) {
+    if (unavailable) {
+      // leave disabled, no handler, no answer coloring
+    } else if (state.answered) {
       btn.disabled = true;
       if (cam === best) btn.classList.add("correct");
       else if (fitting.includes(cam)) btn.classList.add("fits");
@@ -327,7 +356,7 @@ function renderGear(chosen) {
       btn.addEventListener("click", () => answer(cam));
     }
     grid.appendChild(btn);
-  }
+  });
 }
 
 /* ---------- feedback + range chart ---------- */
@@ -402,9 +431,23 @@ function init() {
   });
   $("nextRound").addEventListener("click", newRound);
   $("wallNext").addEventListener("click", newRound);
+  window.addEventListener("resize", handleResize);
   initHeaderCollapse();
   // Start on calibration if never calibrated, otherwise go straight to play.
   setView(state.pxPerMm ? "play" : "calibrate");
+}
+
+// Keep the crack and gear consistent with the current wall size. If a resize
+// leaves the current (unanswered) crack too big to show, draw a fresh round.
+let resizeTimer = null;
+function handleResize() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (state.view !== "play" || !state.target) return;
+    if (!state.answered && state.target.width > maxDisplayableMm()) { newRound(); return; }
+    renderCrack();
+    if (!state.answered) renderGear();
+  }, 120);
 }
 
 /* ---------- collapsible header ---------- */
