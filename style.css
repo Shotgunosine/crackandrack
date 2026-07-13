@@ -353,5 +353,26 @@ button.ghost {
 .cam-table th { color: var(--muted); font-weight: 600; }
 .cam-table .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
 
+/* ---------- rack selection ---------- */
+.rack-name { color: var(--muted); font-size: 0.85rem; margin: 0.8rem 0 0; text-align: center; }
+.rack-name strong { color: var(--ink); }
+.rack-change { color: var(--accent); margin-left: 0.5rem; font-size: 0.8rem; }
+.rack-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+.rack-item {
+  display: flex; flex-direction: column; gap: 0.15rem; text-align: left;
+  background: var(--panel-2); border: 1px solid var(--line);
+  color: var(--ink); border-radius: 10px; padding: 0.7rem 0.9rem; cursor: pointer;
+}
+.rack-item:hover { border-color: var(--accent); }
+.rack-item.active { border-color: var(--accent); background: #2c2a1c; }
+.rack-item-name { font-weight: 700; }
+.rack-item-meta { color: var(--muted); font-size: 0.8rem; }
+
 .view { animation: fade 0.15s ease; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* keep the (now busier) menu bar from overflowing on small screens */
+@media (max-width: 560px) {
+  .topbar { flex-wrap: wrap; row-gap: 0.4rem; column-gap: 0.5rem; }
+  .tab { padding: 0.35rem 0.55rem; font-size: 0.9rem; }
+}

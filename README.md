@@ -2,7 +2,7 @@
 
 A single-page browser game for building intuition about which cam fits which crack.
 It shows a crack at its **true real-world width** on your screen and asks you to pick
-the right piece of gear. First pass uses the **Wild Country Friends 2026** range.
+the right piece of gear, using real published cam ranges from several manufacturers.
 
 ## How it works
 
@@ -19,7 +19,10 @@ the right piece of gear. First pass uses the **Wild Country Friends 2026** range
      the crack to a random angle.
    - Score and streak show in the top corners of the crack window; tap the yellow **❯**
      to advance.
-3. **Study** — a reference chart of every cam's range and where they overlap.
+3. **Rack** — pick which cam set you're learning (Wild Country Friends 2026 / 2025, Black
+   Diamond Camalot C4, Metolius Power Cams, …). The choice is remembered per device and
+   its name is shown on the play screen.
+4. **Study** — a reference chart of the current set's ranges and where they overlap.
 
 ## Run locally
 
@@ -51,22 +54,14 @@ works over `file://` — no local server needed.)
 |-----------------|----------------------------------------------------------------|
 | `index.html`    | Page structure (calibrate / play / study panels)              |
 | `style.css`     | Rock-wall and UI styling                                       |
-| `cams.js`       | Cam data as a global `CAMS` (runtime source)                  |
-| `data/cams.json`| Canonical, human-readable copy of the cam data                |
-| `game.js`       | Calibration, rounds, scoring, rendering, study mode           |
+| `cams.js`       | Cam sets as a global `CAM_SETS` (runtime source)              |
+| `data/cams.json`| Canonical, human-readable copy of the same cam sets           |
+| `game.js`       | Calibration, rack switching, rounds, scoring, rendering       |
 
-## Cam data (Wild Country Friends 2026)
+## Cam data
 
-| Size | Colour | Range (mm)     |
-|------|--------|----------------|
-| 0.3  | Blue   | 15.1 – 21.1    |
-| 0.4  | Silver | 16.9 – 23.6    |
-| 0.5  | Purple | 22.0 – 31.0    |
-| 0.75 | Green  | 27.5 – 38.7    |
-| 1    | Red    | 33.9 – 48.1    |
-| 2    | Gold   | 44.2 – 62.3    |
-| 3    | Blue   | 56.2 – 79.2    |
-| 4    | Grey   | 71.3 – 100.8   |
-
-To update or add gear later, edit both `cams.js` (used at runtime) and `data/cams.json`
-(kept in sync as the canonical record).
+`data/cams.json` is an array of cam sets, each with `brand`, `family`, `year`, `source`,
+`units`, a `displayname` (shown in the Rack menu and on the play screen), and a `cams`
+list of `{ size, color, colorHex, min, max }` (expansion range in mm). To add or edit a
+set, update **both** `data/cams.json` (canonical) and `cams.js` (loaded at runtime as a
+plain script so the game works over `file://` without fetch/CORS). Keep them identical.

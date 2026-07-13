@@ -17,6 +17,7 @@
     <h1><span class="title-full">Crack &amp; Rack</span><span class="title-short">C&amp;R</span></h1>
     <nav class="tabs">
       <button class="tab" data-view="play">Play</button>
+      <button class="tab" data-view="rack">Rack</button>
       <button class="tab" data-view="study">Study</button>
       <button class="tab" data-view="calibrate">Calibrate</button>
     </nav>
@@ -107,6 +108,8 @@
 
       <div class="gear-grid" id="gearGrid"></div>
       <p class="gear-note" id="gearNote" hidden></p>
+      <p class="rack-name">Rack: <strong id="rackName"></strong>
+        <a href="#" data-goto="rack" class="rack-change">change</a></p>
 
       <div class="feedback" id="feedback" hidden>
         <p class="feedback-text" id="feedbackText"></p>
@@ -115,10 +118,22 @@
       </div>
     </section>
 
+    <!-- ============ RACK ============ -->
+    <section class="view" id="view-rack" hidden>
+      <div class="panel">
+        <h2>Choose your rack</h2>
+        <p class="lede">
+          Pick the cam set you're learning. Cracks and gear will match its real
+          sizes; your choice is remembered on this device.
+        </p>
+        <div class="rack-list" id="rackList"></div>
+      </div>
+    </section>
+
     <!-- ============ STUDY ============ -->
     <section class="view" id="view-study" hidden>
       <div class="panel">
-        <h2>Wild Country Friends 2026 — reference</h2>
+        <h2 id="studyTitle">reference</h2>
         <p class="lede">
           Bars are drawn to true scale when your screen is calibrated. Notice how
           neighbouring sizes overlap — that overlap is where placement judgement matters.

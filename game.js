@@ -9,19 +9,27 @@ const CARD_SHORT_MM = 53.98;         // horizontal dimension in portrait
 const CARD_LONG_MM = 85.6;           // vertical dimension in portrait
 const DEFAULT_PX_PER_MM = 96 / 25.4; // ~3.78, a 96-dpi guess used only if uncalibrated
 const LS_KEY = "cc_pxPerMm";
+const LS_RACK = "cc_rackIndex";
+
+// The active rack's derived data. Rebuilt by loadRack() whenever the set changes.
+let CAMS = [];              // cams of the current set, augmented with center/label
+let RACK_MIN = 0, RACK_MAX = 0;
+let BYCAM = { easy: [], hard: [] };
+let ACHIEVABLE = { easy: [], hard: [] };
 
 const state = {
   pxPerMm: null,        // null => uncalibrated
   calMethod: "card",
   view: "calibrate",
   difficulty: "easy",
+  rackIndex: 0,         // index into CAM_SETS
   score: 0,
   streak: 0,
   target: null,         // { width, fitting:[cam], best:cam, angle }
   answered: false,
   lastBestIdx: -1,      // index (into CAMS) of the previous round's best cam
   simRun: 0,            // how many consecutive rounds have been "similar" size
-  counts: CAMS.map(() => 0), // times each cam (by index) has been the answer this session
+  counts: [],           // times each cam (by index) has been the answer this session
 };
 
 // Anti-repetition: allow a short run of similar sizes, then force a jump.
@@ -93,12 +101,27 @@ function buildPools() {
   }
   return { easy, hard };
 }
-const BYCAM = buildPools();
-// Cam indices that can actually appear in each difficulty (non-empty pool).
-const ACHIEVABLE = {
-  easy: BYCAM.easy.map((l, i) => (l.length ? i : -1)).filter((i) => i >= 0),
-  hard: BYCAM.hard.map((l, i) => (l.length ? i : -1)).filter((i) => i >= 0),
-};
+
+// Switch the active cam set: augment its cams, recompute rack range + pools, and
+// reset the per-session selection bookkeeping. Persists the choice.
+function loadRack(index) {
+  index = Math.max(0, Math.min(index, CAM_SETS.length - 1));
+  state.rackIndex = index;
+  CAMS = CAM_SETS[index].cams.map((c) => ({
+    ...c, center: (c.min + c.max) / 2, label: "#" + c.size,
+  }));
+  RACK_MIN = Math.min(...CAMS.map((c) => c.min));
+  RACK_MAX = Math.max(...CAMS.map((c) => c.max));
+  BYCAM = buildPools();
+  ACHIEVABLE = {
+    easy: BYCAM.easy.map((l, i) => (l.length ? i : -1)).filter((i) => i >= 0),
+    hard: BYCAM.hard.map((l, i) => (l.length ? i : -1)).filter((i) => i >= 0),
+  };
+  state.counts = CAMS.map(() => 0);
+  state.lastBestIdx = -1;
+  state.simRun = 0;
+  localStorage.setItem(LS_RACK, String(index));
+}
 
 /* ============================================================
    Calibration
@@ -180,8 +203,9 @@ function setView(name) {
   state.view = name;
   document.querySelectorAll(".tab").forEach((t) =>
     t.classList.toggle("active", t.dataset.view === name));
-  ["play", "study", "calibrate"].forEach((v) =>
+  ["play", "rack", "study", "calibrate"].forEach((v) =>
     ($("view-" + v).hidden = v !== name));
+  if (name === "rack") renderRackMenu();
   if (name === "study") renderStudy();
   if (name === "play" && !state.target) newRound();
 }
@@ -414,9 +438,38 @@ function renderRangeChart(container, marker, best) {
 }
 
 /* ============================================================
+   Rack selection
+   ============================================================ */
+function updateRackName() {
+  $("rackName").textContent = CAM_SETS[state.rackIndex].displayname;
+}
+function renderRackMenu() {
+  const list = $("rackList");
+  list.innerHTML = "";
+  CAM_SETS.forEach((set, i) => {
+    const lo = Math.min(...set.cams.map((c) => c.min));
+    const hi = Math.max(...set.cams.map((c) => c.max));
+    const btn = el("button", "rack-item" + (i === state.rackIndex ? " active" : ""));
+    btn.innerHTML =
+      `<span class="rack-item-name">${set.displayname}</span>` +
+      `<span class="rack-item-meta">${set.brand} · ${set.cams.length} cams · ` +
+      `${round1(lo)}–${round1(hi)} mm</span>`;
+    btn.addEventListener("click", () => selectRack(i));
+    list.appendChild(btn);
+  });
+}
+function selectRack(i) {
+  loadRack(i);
+  updateRackName();
+  state.target = null;   // force a fresh round with the new set
+  setView("play");
+}
+
+/* ============================================================
    Study mode
    ============================================================ */
 function renderStudy() {
+  $("studyTitle").textContent = CAM_SETS[state.rackIndex].displayname + " — reference";
   renderRangeChart($("studyChart"), null, null);
   const table = $("camTable");
   table.innerHTML =
@@ -436,6 +489,8 @@ function renderStudy() {
    ============================================================ */
 function init() {
   loadCalibration();
+  loadRack(parseInt(localStorage.getItem(LS_RACK), 10) || 0);
+  updateRackName();
   refreshCalStatus();
   updateStreak();
   initCalibration();
