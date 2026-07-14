@@ -12,6 +12,9 @@ const LS_KEY = "cc_pxPerMm";
 const LS_RACK = "cc_rackIndex";
 const LS_SEEN_INTRO = "cc_seenIntro"; // "1" once the visitor has seen the intro view
 
+// All cam sets, loaded once from data/cams.json (the single source of truth).
+let CAM_SETS = [];
+
 // The active rack's derived data. Rebuilt by loadRack() whenever the set changes.
 let CAMS = [];              // cams of the current set, augmented with center/label
 let RACK_MIN = 0, RACK_MAX = 0;
@@ -580,4 +583,26 @@ function initHeaderCollapse() {
   $("expandBtn").addEventListener("click", () => setHeaderCollapsed(false));
   setHeaderCollapsed(localStorage.getItem(LS_HEADER) === "1");
 }
-document.addEventListener("DOMContentLoaded", init);
+// Load the cam data (single source of truth) from data/cams.json, then boot.
+// Must be served over http(s); opening index.html as a bare file:// will fail
+// the fetch and show the message below.
+async function boot() {
+  try {
+    const res = await fetch("data/cams.json");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    CAM_SETS = await res.json();
+  } catch (e) {
+    document.body.innerHTML =
+      '<p style="color:#e8ebef;font-family:sans-serif;padding:2rem;line-height:1.5">' +
+      "Couldn't load cam data (<code>data/cams.json</code>): " + e.message +
+      ".<br>If you opened this page as a file, serve it over http instead " +
+      "(e.g. <code>python3 -m http.server</code>).</p>";
+    return;
+  }
+  init();
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
