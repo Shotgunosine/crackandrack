@@ -65,6 +65,11 @@ html, body {
 }
 .tab:hover { color: var(--ink); }
 .tab.active { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
+/* Icon tabs: keep glyph and inline-SVG the same visual size and centred. */
+.tab { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+.tab svg { width: 1.2em; height: 1.2em; display: block; }
+/* Cam icon (Noun Project) inlined; larger box since the source art has margins. */
+.tab .tab-cam { width: 1.5em; height: 1.5em; }
 
 .diff-select {
   background: var(--panel-2); color: var(--ink);
