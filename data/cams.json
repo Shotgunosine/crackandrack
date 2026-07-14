@@ -72,5 +72,25 @@
       { "size": "7",  "color": "Lt. Blue", "colorHex": "#ADD8E6", "min": 40.0, "max": 57.5 },
       { "size": "8",  "color": "Purple",   "colorHex": "#7a4fb0", "min": 48.5, "max": 71.5 }
     ]
+  },
+  {
+    "brand": "DMM",
+    "family": "Dragon Cams",
+    "year": 2016,
+    "source": "https://hownot2.com/products/dragon-cams",
+    "units": "mm",
+    "displayname": "Dragon Cams",
+    "cams": [
+      { "size": "00",  "color": "Blue",     "colorHex": "#2f6fb0", "min": 13.0, "max": 21.0 },
+      { "size": "0",   "color": "Silver",   "colorHex": "#b8bcc2", "min": 16.0, "max": 25.0 },
+      { "size": "1",   "color": "Purple",   "colorHex": "#7a4fb0", "min": 20.0, "max": 33.0 },
+      { "size": "2",   "color": "Green",    "colorHex": "#3f9b46", "min": 24.0, "max": 41.0 },
+      { "size": "3",   "color": "Red",      "colorHex": "#cc3333", "min": 29.0, "max": 50.0 },
+      { "size": "4",   "color": "Gold",     "colorHex": "#e0a91b", "min": 38.0, "max": 64.0 },
+      { "size": "5",   "color": "Blue",     "colorHex": "#2f6fb0", "min": 50.0, "max": 85.0 },
+      { "size": "6",   "color": "Silver",   "colorHex": "#b8bcc2", "min": 68.0, "max": 114.0 },
+      { "size": "7",   "color": "Purple",   "colorHex": "#7a4fb0", "min": 88.0, "max": 149.0 },
+      { "size": "8",   "color": "Green",    "colorHex": "#3f9b46", "min": 116.0, "max": 195.0 }
+    ]
   }
 ]
