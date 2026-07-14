@@ -329,10 +329,15 @@ function answer(cam) {
   const fits = fitting.includes(cam);
   const isBest = cam === best;
 
+  // Any cam that actually fits the crack earns full points and keeps the streak;
+  // the "best" fit just gets a slightly different message.
   let pts = 0, tag = "wrong", label = "Not a fit";
-  if (isBest) { pts = 10; tag = "full"; label = "Best fit! +10"; state.streak += 1; }
-  else if (fits) { pts = 5; tag = "partial"; label = "It fits, but not ideal +5"; } // marginal: keeps streak
-  else { pts = 0; tag = "wrong"; label = "Won't hold — wrong size"; state.streak = 0; }
+  if (fits) {
+    pts = 10; tag = "full"; state.streak += 1;
+    label = isBest ? "Best fit! +10" : "It fits! +10";
+  } else {
+    pts = 0; tag = "wrong"; label = "Won't hold — wrong size"; state.streak = 0;
+  }
 
   state.score += pts;
   $("score").textContent = state.score;
