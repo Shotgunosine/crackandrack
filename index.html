@@ -188,13 +188,26 @@
     <!-- ============ STUDY ============ -->
     <section class="view" id="view-study" hidden>
       <div class="panel">
+        <div class="study-head">
+          <select id="studySet" class="diff-select" title="Set to study"></select>
+          <button id="studyUseRack" class="ghost">Make current rack</button>
+        </div>
         <h2 id="studyTitle">reference</h2>
         <p class="lede">
-          Bars are drawn to true scale when your screen is calibrated. Notice how
-          neighbouring sizes overlap, either size will fit these cracks.
+          Bars are drawn proportionally so you can see how neighbouring sizes overlap —
+          either size will fit those cracks. Pin cams (📌) to compare them against another set below.
         </p>
         <div class="study-chart" id="studyChart"></div>
         <table class="cam-table" id="camTable"></table>
+
+        <div class="compare" id="comparePanel" hidden>
+          <div class="compare-head">
+            <h3>Pinned for comparison</h3>
+            <button id="clearPinned" class="ghost">Clear all</button>
+          </div>
+          <div id="pinnedList"></div>
+          <div class="study-chart" id="compareChart"></div>
+        </div>
       </div>
     </section>
   </main>

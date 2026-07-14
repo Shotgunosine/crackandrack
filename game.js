@@ -11,6 +11,7 @@ const DEFAULT_PX_PER_MM = 96 / 25.4; // ~3.78, a 96-dpi guess used only if uncal
 const LS_KEY = "cc_pxPerMm";
 const LS_RACK = "cc_rackIndex";
 const LS_SEEN_INTRO = "cc_seenIntro"; // "1" once the visitor has seen the intro view
+const LS_PINNED = "cc_pinnedCams";    // JSON array of cams retained on the Study page
 
 // All cam sets, loaded once from data/cams.json (the single source of truth).
 let CAM_SETS = [];
@@ -26,7 +27,9 @@ const state = {
   calMethod: "card",
   view: "calibrate",
   difficulty: "easy",
-  rackIndex: 0,         // index into CAM_SETS
+  rackIndex: 0,         // index into CAM_SETS (the active Play rack)
+  studyIndex: 0,        // index into CAM_SETS (the set shown on the Study page)
+  pinned: [],           // cams retained for comparison: {setName,size,color,colorHex,min,max,label}
   score: 0,
   streak: 0,
   target: null,         // { width, fitting:[cam], best:cam, angle }
@@ -454,28 +457,41 @@ function showFeedback(chosen, tag, label) {
   $("feedback").hidden = false;
 }
 
-function renderRangeChart(container, marker, best) {
+// Low-level bar renderer. `rows` = [{ label, colorHex, min, max, isBest?, pinned? }];
+// bars are positioned as a % of the shared [min, max] span so different sets can
+// be compared on one axis. `opts.marker` (mm) draws the crack-width line.
+function drawRangeBars(container, rows, min, max, opts = {}) {
   container.innerHTML = "";
-  const span = RACK_MAX - RACK_MIN;
-  const pct = (mm) => ((mm - RACK_MIN) / span) * 100;
-  for (const cam of CAMS) {
-    const row = el("div", "rc-row" + (cam === best ? " is-best" : ""));
+  const span = (max - min) || 1;
+  const pct = (mm) => ((mm - min) / span) * 100;
+  for (const r of rows) {
+    const row = el("div", "rc-row" +
+      (r.isBest ? " is-best" : "") + (r.pinned ? " is-pinned" : ""));
     row.appendChild(el("div", "rc-label",
-      `<span class="swatch" style="background:${cam.colorHex}"></span>#${cam.size}`));
+      `<span class="swatch" style="background:${r.colorHex}"></span>${r.label}`));
     const track = el("div", "rc-track");
     const bar = el("div", "rc-bar");
-    bar.style.left = pct(cam.min) + "%";
-    bar.style.width = (pct(cam.max) - pct(cam.min)) + "%";
-    bar.style.background = cam.colorHex;
+    bar.style.left = pct(r.min) + "%";
+    bar.style.width = (pct(r.max) - pct(r.min)) + "%";
+    bar.style.background = r.colorHex;
     track.appendChild(bar);
-    if (marker != null && marker >= cam.min - span && marker <= cam.max + span) {
+    if (opts.marker != null && opts.marker >= r.min - span && opts.marker <= r.max + span) {
       const m = el("div", "rc-marker");
-      m.style.left = pct(marker) + "%";
+      m.style.left = pct(opts.marker) + "%";
       track.appendChild(m);
     }
     row.appendChild(track);
     container.appendChild(row);
   }
+}
+
+// In-game / active-rack range chart (scaled to the current rack's own span).
+function renderRangeChart(container, marker, best) {
+  const rows = CAMS.map((cam) => ({
+    label: "#" + cam.size, colorHex: cam.colorHex,
+    min: cam.min, max: cam.max, isBest: cam === best,
+  }));
+  drawRangeBars(container, rows, RACK_MIN, RACK_MAX, { marker });
 }
 
 /* ============================================================
@@ -507,21 +523,129 @@ function selectRack(i) {
 }
 
 /* ============================================================
-   Study mode
+   Study mode + cam comparison
    ============================================================ */
+function loadPinned() {
+  try {
+    const v = JSON.parse(localStorage.getItem(LS_PINNED));
+    state.pinned = Array.isArray(v) ? v : [];
+  } catch { state.pinned = []; }
+}
+function savePinned() {
+  localStorage.setItem(LS_PINNED, JSON.stringify(state.pinned));
+}
+const pinKey = (setName, size) => setName + " #" + size;
+function isPinned(setName, size) {
+  return state.pinned.some((p) => pinKey(p.setName, p.size) === pinKey(setName, size));
+}
+function togglePin(cam, setName) {
+  const key = pinKey(setName, cam.size);
+  const i = state.pinned.findIndex((p) => pinKey(p.setName, p.size) === key);
+  if (i >= 0) state.pinned.splice(i, 1);
+  else state.pinned.push({
+    setName, size: cam.size, color: cam.color, colorHex: cam.colorHex,
+    min: cam.min, max: cam.max, label: setName + " #" + cam.size,
+  });
+  savePinned();
+  renderStudy();
+}
+
 function renderStudy() {
-  $("studyTitle").textContent = CAM_SETS[state.rackIndex].displayname + " — reference";
-  renderRangeChart($("studyChart"), null, null);
+  const set = CAM_SETS[state.studyIndex];
+  const setName = set.displayname;
+  const studyCams = set.cams.map((c) => ({ ...c, center: (c.min + c.max) / 2 }));
+  const smin = Math.min(...studyCams.map((c) => c.min));
+  const smax = Math.max(...studyCams.map((c) => c.max));
+
+  $("studyTitle").textContent = setName + " — reference";
+
+  // set picker + "make current rack" (disabled when already the active rack)
+  $("studySet").innerHTML = CAM_SETS.map((s, i) =>
+    `<option value="${i}"${i === state.studyIndex ? " selected" : ""}>${s.displayname}</option>`
+  ).join("");
+  const isCurrentRack = state.studyIndex === state.rackIndex;
+  const useBtn = $("studyUseRack");
+  useBtn.disabled = isCurrentRack;
+  useBtn.textContent = isCurrentRack ? "✓ Current rack" : "Make current rack";
+  useBtn.classList.toggle("is-current", isCurrentRack);
+
+  // range chart, scaled to this set's own span
+  drawRangeBars($("studyChart"),
+    studyCams.map((c) => ({ label: "#" + c.size, colorHex: c.colorHex, min: c.min, max: c.max })),
+    smin, smax);
+
+  // table with a per-cam pin toggle
   const table = $("camTable");
   table.innerHTML =
-    "<tr><th>Size</th><th>Colour</th><th>Range (mm)</th><th>Sweet spot</th></tr>";
-  for (const cam of CAMS) {
+    "<tr><th>Size</th><th>Colour</th><th>Range (mm)</th><th>Sweet spot</th><th>Compare</th></tr>";
+  for (const cam of studyCams) {
+    const pinned = isPinned(setName, cam.size);
     const tr = el("tr", null,
       `<td><strong>#${cam.size}</strong></td>` +
       `<td><span class="swatch" style="background:${cam.colorHex}"></span>${cam.color}</td>` +
       `<td>${cam.min} – ${cam.max}</td>` +
-      `<td>${round1(cam.center)} mm</td>`);
+      `<td>${round1(cam.center)} mm</td>` +
+      `<td></td>`);
+    const btn = el("button", "pin-btn" + (pinned ? " active" : ""), pinned ? "📌" : "＋");
+    btn.title = pinned ? "Remove from comparison" : "Pin for comparison";
+    btn.setAttribute("aria-label", btn.title);
+    btn.addEventListener("click", () => togglePin(cam, setName));
+    tr.lastElementChild.appendChild(btn);
     table.appendChild(tr);
+  }
+
+  renderCompare();
+}
+
+// Editable list of pinned cams + the shared-scale comparison chart.
+function renderCompare() {
+  const panel = $("comparePanel");
+  panel.hidden = state.pinned.length === 0;
+  if (panel.hidden) { $("pinnedList").innerHTML = ""; $("compareChart").innerHTML = ""; return; }
+
+  const list = $("pinnedList");
+  list.innerHTML = "";
+  state.pinned.forEach((p, i) => {
+    const rowEl = el("div", "pinned-row");
+    const sw = el("span", "swatch");
+    sw.style.background = p.colorHex;
+    rowEl.appendChild(sw);
+    const input = el("input", "pinned-label");
+    input.type = "text";
+    input.value = p.label;
+    input.addEventListener("input", () => {
+      state.pinned[i].label = input.value;
+      savePinned();
+      refreshCompareChart();
+    });
+    rowEl.appendChild(input);
+    rowEl.appendChild(el("span", "pinned-src", `${p.setName} · ${p.min}–${p.max} mm`));
+    const rm = el("button", "pin-remove", "×");
+    rm.title = "Remove";
+    rm.setAttribute("aria-label", "Remove " + p.label);
+    rm.addEventListener("click", () => { state.pinned.splice(i, 1); savePinned(); renderStudy(); });
+    rowEl.appendChild(rm);
+    list.appendChild(rowEl);
+  });
+
+  refreshCompareChart();
+}
+
+// Pinned cams + the current Study set, drawn on one shared mm scale.
+function refreshCompareChart() {
+  const setRows = CAM_SETS[state.studyIndex].cams.map((c) => ({
+    label: "#" + c.size, colorHex: c.colorHex, min: c.min, max: c.max,
+  }));
+  const pinRows = state.pinned.map((p) => ({
+    label: p.label, colorHex: p.colorHex, min: p.min, max: p.max, pinned: true,
+  }));
+  const rows = pinRows.concat(setRows);
+  const min = Math.min(...rows.map((r) => r.min));
+  const max = Math.max(...rows.map((r) => r.max));
+  drawRangeBars($("compareChart"), rows, min, max);
+  // Dashed separator between the retained cams and the current set's cams.
+  if (pinRows.length && setRows.length) {
+    $("compareChart").children[pinRows.length - 1].classList.add("pin-sep");
   }
 }
 
@@ -531,6 +655,8 @@ function renderStudy() {
 function init() {
   loadCalibration();
   loadRack(parseInt(localStorage.getItem(LS_RACK), 10) || 0);
+  state.studyIndex = state.rackIndex;
+  loadPinned();
   updateRackName();
   refreshCalStatus();
   updateStreak();
@@ -545,6 +671,22 @@ function init() {
   });
   $("nextRound").addEventListener("click", newRound);
   $("wallNext").addEventListener("click", newRound);
+  // Study page: set picker, promote-to-rack, clear comparison.
+  $("studySet").addEventListener("change", (e) => {
+    state.studyIndex = parseInt(e.target.value, 10) || 0;
+    renderStudy();
+  });
+  $("studyUseRack").addEventListener("click", () => {
+    loadRack(state.studyIndex);
+    updateRackName();
+    state.target = null;   // force a fresh Play round with the new rack
+    renderStudy();
+  });
+  $("clearPinned").addEventListener("click", () => {
+    state.pinned = [];
+    savePinned();
+    renderStudy();
+  });
   window.addEventListener("resize", handleResize);
   initHeaderCollapse();
   // First-ever visit sees the intro; afterwards go to calibration if never

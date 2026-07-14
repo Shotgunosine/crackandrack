@@ -386,6 +386,42 @@ button.ghost {
 .cam-table th { color: var(--muted); font-weight: 600; }
 .cam-table .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
 
+/* study set picker + promote-to-rack */
+.study-head { display: flex; gap: 0.6rem; align-items: center; margin-bottom: 0.6rem; }
+.study-head #studySet { flex: 1; min-width: 0; }
+/* "Make current rack" shows a confirmed state once it's the active rack */
+#studyUseRack { white-space: nowrap; transition: color 0.15s ease, border-color 0.15s ease; }
+#studyUseRack.is-current { color: var(--good); border-color: var(--good); opacity: 1; cursor: default; }
+/* per-cam pin toggle in the table */
+.pin-btn {
+  background: var(--panel-2); color: var(--muted); border: 1px solid var(--line);
+  border-radius: 6px; width: 1.9rem; height: 1.7rem; cursor: pointer; line-height: 1;
+  font-size: 0.9rem; padding: 0;
+}
+.pin-btn.active { background: var(--accent); color: #1a1a1a; border-color: var(--accent); }
+
+/* comparison panel */
+.compare { margin-top: 1.5rem; border-top: 1px solid var(--line); padding-top: 1rem; }
+.compare-head { display: flex; align-items: center; justify-content: space-between; }
+.compare-head h3 { margin: 0; font-size: 1rem; }
+.pinned-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.4rem 0; }
+.pinned-row .swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.pinned-label {
+  flex: 1; min-width: 0; padding: 0.3rem 0.5rem; background: var(--panel-2);
+  border: 1px solid var(--line); color: var(--ink); border-radius: 6px; font-size: 0.85rem;
+}
+.pinned-src { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+.pin-remove {
+  background: transparent; color: var(--muted); border: none; cursor: pointer;
+  font-size: 1.1rem; line-height: 1; padding: 0 0.25rem; flex: none;
+}
+.pin-remove:hover { color: var(--bad); }
+/* comparison chart: wider label column for custom labels */
+#compareChart .rc-row { grid-template-columns: 6.5rem 1fr; }
+#compareChart .rc-label { font-size: 0.72rem; line-height: 1.15; }
+/* single dashed line separating the retained cams from the current set */
+.rc-row.pin-sep { border-bottom: 1px dashed var(--accent); padding-bottom: 7px; margin-bottom: 3px; }
+
 /* ---------- rack selection ---------- */
 .rack-name { color: var(--muted); font-size: 0.85rem; margin: 0.8rem 0 0; text-align: center; }
 .rack-name strong { color: var(--ink); }
