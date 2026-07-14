@@ -43,7 +43,7 @@
     "displayname": "Camalot C4",
     "cams": [
       { "size": "0.3",  "color": "Blue",   "colorHex": "#2f6fb0", "min": 13.8, "max": 23.4 },
-      { "size": "0.4",  "color": "Silver", "colorHex": "#b8bcc2", "min": 15.5, "max": 26.7 },
+      { "size": "0.4",  "color": "Grey",   "colorHex": "#8a8f96", "min": 15.5, "max": 26.7 },
       { "size": "0.5",  "color": "Purple", "colorHex": "#7a4fb0", "min": 19.6, "max": 33.5 },
       { "size": "0.75", "color": "Green",  "colorHex": "#3f9b46", "min": 23.9, "max": 41.2 },
       { "size": "1",    "color": "Red",    "colorHex": "#cc3333", "min": 30.2, "max": 52.1 },
@@ -91,6 +91,55 @@
       { "size": "6",   "color": "Silver",   "colorHex": "#b8bcc2", "min": 68.0, "max": 114.0 },
       { "size": "7",   "color": "Purple",   "colorHex": "#7a4fb0", "min": 88.0, "max": 149.0 },
       { "size": "8",   "color": "Green",    "colorHex": "#3f9b46", "min": 116.0, "max": 195.0 }
+    ]
+  },
+  {
+    "brand": "DMM",
+    "family": "Dragonfly Micro Cams",
+    "year": 2019,
+    "source": "https://hownot2.com/products/dragonfly-cam",
+    "units": "mm",
+    "displayname": "Dragonfly Micro Cams",
+    "cams": [
+      { "size": "1",   "color": "Green",    "colorHex": "#3f9b46", "min": 7.8, "max": 11.5 },
+      { "size": "2",   "color": "Red",      "colorHex": "#cc3333", "min": 8.7, "max": 13.7 },
+      { "size": "3",   "color": "Gold",     "colorHex": "#e0a91b", "min": 10.7, "max": 14.8 },
+      { "size": "4",   "color": "Blue",     "colorHex": "#2f6fb0", "min": 12.3, "max": 17.9 },
+      { "size": "5",   "color": "Silver",   "colorHex": "#b8bcc2", "min": 15.1, "max": 21.8 },
+      { "size": "6",   "color": "Purple",   "colorHex": "#7a4fb0", "min": 18.9, "max": 28.9 }
+    ]
+  },
+  {
+    "brand": "Wild Country",
+    "family": "Zero Friends",
+    "year": 2020,
+    "source": "https://hownot2.com/products/zero-friend",
+    "units": "mm",
+    "displayname": "Zero Friends",
+    "cams": [
+      { "size": "0.1",    "color": "Red",    "colorHex": "#cc3333", "min": 8.5, "max": 13.2 },
+      { "size": "0.2",    "color": "Gold",   "colorHex": "#e0a91b", "min": 10.4, "max": 15.7 },
+      { "size": "0.3",    "color": "Blue",   "colorHex": "#2f6fb0", "min": 13.8, "max": 22.3 },
+      { "size": "0.4",    "color": "Silver", "colorHex": "#b8bcc2", "min": 15.8, "max": 25.9 },
+      { "size": "0.5",    "color": "Purple", "colorHex": "#7a4fb0", "min": 20.2, "max": 32.9 },
+      { "size": "0.75",   "color": "Green",  "colorHex": "#3f9b46", "min": 25.4, "max": 40.1 }
+    ]
+  },
+  {
+    "brand": "Black Diamond",
+    "family": "Camalot Z4",
+    "year": 2020,
+    "source": "https://hownot2.com/products/camalot-z4-cams-black-diamond",
+    "units": "mm",
+    "displayname": "Camalot Z4",
+    "cams": [
+      { "size": "0",     "color": "Green",  "colorHex": "#3f9b46", "min": 7.9, "max": 9.7 },
+      { "size": "0.1",   "color": "Red",    "colorHex": "#cc3333", "min": 9.3, "max": 11.3 },
+      { "size": "0.2",   "color": "Yellow", "colorHex": "#e0a91b", "min": 11, "max": 13.4 },
+      { "size": "0.3",   "color": "Blue",   "colorHex": "#2f6fb0", "min": 13.4, "max": 20.1 },
+      { "size": "0.4",   "color": "Grey",   "colorHex": "#8a8f96", "min": 16.5, "max": 24.6 },
+      { "size": "0.5",   "color": "Purple", "colorHex": "#7a4fb0", "min": 20.3, "max": 30.1 },
+      { "size": "0.75",  "color": "Green",  "colorHex": "#3f9b46", "min": 25, "max": 37.4 }
     ]
   }
 ]
