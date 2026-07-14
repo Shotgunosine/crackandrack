@@ -216,17 +216,19 @@ button.ghost {
   height: 220%; /* long enough to run off both edges at any angle */
   transform-origin: center center;
   transform: translate(-50%, -50%) rotate(0deg); /* width + rotate set inline by JS */
-  /* The back of the crack is the same granite grain, but heavily darkened, with a
-     multiply shading that deepens toward the centre (the deepest part of the gap). */
+  /* The back of the crack is heavily darkened, shading that deepens toward the
+     centre (the deepest part of the gap). */
   background-color: #0d0906;
+  /* Depth without blend modes: a rotated element becomes a GPU compositing
+     layer, and background-blend-mode is unreliable on composited/rotated layers
+     on mobile — the dropped soft-light blend exposed the opaque grain as raw
+     black-and-white static at extreme angles. Horizontal gradient = deepest
+     (black) down the centre; vertical gradient = subtle top-lit falloff. */
   background-image:
-    var(--grain),
+    linear-gradient(180deg, rgba(50,38,28,0.35) 0%, rgba(0,0,0,0.25) 100%),
     linear-gradient(90deg,
-      rgba(70,56,44,0.55) 0%, rgba(0,0,0,0.85) 42%, #000 50%,
-      rgba(0,0,0,0.85) 58%, rgba(70,56,44,0.55) 100%),
-    linear-gradient(180deg, #241b14, #0e0a07);
-  background-size: 150px 150px, 100% 100%, 100% 100%;
-  background-blend-mode: soft-light, multiply, normal;
+      #241b14 0%, #060403 42%, #000 50%, #060403 58%, #241b14 100%);
+  background-size: 100% 100%, 100% 100%;
   box-shadow: inset 0 0 26px 6px #000, 0 0 16px 5px rgba(0,0,0,0.6);
   /* width set inline by JS from true mm × pxPerMm (perpendicular gap, angle-invariant) */
 }
