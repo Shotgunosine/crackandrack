@@ -16,6 +16,7 @@
   <header class="topbar">
     <h1><span class="title-full">Crack &amp; Rack</span><span class="title-short">C&amp;R</span></h1>
     <nav class="tabs">
+      <button class="tab" data-view="intro">About</button>
       <button class="tab" data-view="play">Play</button>
       <button class="tab" data-view="rack">Rack</button>
       <button class="tab" data-view="study">Study</button>
@@ -30,13 +31,39 @@
   <button class="expand-btn" id="expandBtn" title="Show header" aria-label="Show header">▾ menu</button>
 
   <main>
+    <!-- ============ INTRO / ABOUT ============ -->
+    <section class="view" id="view-intro" hidden>
+      <div class="panel">
+        <h2>Welcome to Crack &amp; Rack</h2>
+        <p class="lede">
+          A trainer for trad climbers: learn to eyeball which cam fits a crack. A crack is
+          drawn on screen at its true real-world size — your job is to pick the best fitting cam from your
+          rack.
+        </p>
+        <ol class="intro-steps">
+          <li><strong>Calibrate your screen</strong> — match a credit card (or ruler) against
+            the screen so cracks are shown at real size on this device.</li>
+          <li><strong>Choose your rack</strong> — pick the cam set you're learning; the gear
+            and cracks match its real sizes.</li>
+          <li><strong>Play</strong> — size up each crack and tap the cam that fits. In easy
+            mode the cracks are all in the middle of one cam's size range. In hard mode the 
+            cracks can be borderline between two sizes and they're tilted the crack for a 
+            tougher read.</li>
+        </ol>
+        <p class="hint">Everything is remembered on this device, so you only calibrate once.</p>
+        <div class="btn-row">
+          <button class="primary" data-goto="calibrate">Get started →</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ CALIBRATE ============ -->
     <section class="view" id="view-calibrate">
       <div class="panel">
         <h2>Calibrate your screen</h2>
         <p class="lede">
           So cracks are shown at their true real-world size, tell the game how many
-          pixels equal one millimetre on <em>this</em> screen. Pick a method, match a
+          pixels equal one millimeter on <em>this</em> screen. Pick a method, match a
           real object against the screen, then save.
         </p>
 
@@ -52,6 +79,10 @@
             <em>portrait</em> (tall) orientation and drag the slider until the outline
             exactly matches the card (54&nbsp;×&nbsp;85.6&nbsp;mm).
           </p>
+          <div class="card-nudge">
+            <button type="button" class="nudge-btn" id="cardSmaller" aria-label="Make card smaller">‹ Smaller</button>
+            <button type="button" class="nudge-btn" id="cardBigger" aria-label="Make card bigger">Bigger ›</button>
+          </div>
           <div class="card-stage">
             <div class="credit-card" id="creditCard">
               <span class="card-note">↕ 85.6 mm</span>

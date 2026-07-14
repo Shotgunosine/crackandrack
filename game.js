@@ -10,6 +10,7 @@ const CARD_LONG_MM = 85.6;           // vertical dimension in portrait
 const DEFAULT_PX_PER_MM = 96 / 25.4; // ~3.78, a 96-dpi guess used only if uncalibrated
 const LS_KEY = "cc_pxPerMm";
 const LS_RACK = "cc_rackIndex";
+const LS_SEEN_INTRO = "cc_seenIntro"; // "1" once the visitor has seen the intro view
 
 // The active rack's derived data. Rebuilt by loadRack() whenever the set changes.
 let CAMS = [];              // cams of the current set, augmented with center/label
@@ -164,6 +165,35 @@ function showPending() {
   $("dpiOut").textContent = "(≈ " + Math.round(pendingPxPerMm * 25.4) + " dpi)";
 }
 
+// Cap the card slider so the true-size card can never grow wider than the viewport
+// (a real 54 mm card always fits, so this only prevents it running off-screen and
+// appearing to grow only vertically). Returns the clamped value.
+function clampCardSlider() {
+  const s = $("cardSlider");
+  const max = Math.max(120, Math.min(600, Math.floor(window.innerWidth - 8)));
+  s.max = String(max);
+  if (parseInt(s.value, 10) > max) s.value = String(max);
+}
+// Nudge the card slider by delta px (used by the ‹ Smaller / Bigger › buttons).
+function stepCard(delta) {
+  const s = $("cardSlider");
+  const min = parseInt(s.min, 10), max = parseInt(s.max, 10);
+  s.value = String(Math.max(min, Math.min(max, parseInt(s.value, 10) + delta)));
+  updateCardPreview();
+}
+// Press-and-hold repeat: one step on tap, then accelerates while held.
+function holdRepeat(btn, delta) {
+  let toStart = null, iv = null;
+  const stop = () => { clearTimeout(toStart); clearInterval(iv); toStart = iv = null; };
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    stepCard(delta);
+    toStart = setTimeout(() => { iv = setInterval(() => stepCard(delta), 60); }, 350);
+  });
+  ["pointerup", "pointerleave", "pointercancel"].forEach((ev) =>
+    btn.addEventListener(ev, stop));
+}
+
 function initCalibration() {
   // method switcher
   document.querySelectorAll(".seg-btn").forEach((b) => {
@@ -180,6 +210,8 @@ function initCalibration() {
   $("cardSlider").addEventListener("input", updateCardPreview);
   $("rulerSlider").addEventListener("input", updateRulerPreview);
   $("rulerLen").addEventListener("input", updateRulerPreview);
+  holdRepeat($("cardSmaller"), -2);
+  holdRepeat($("cardBigger"), 2);
 
   $("saveCal").addEventListener("click", () => {
     if (pendingPxPerMm > 0) {
@@ -193,6 +225,7 @@ function initCalibration() {
     refreshCalStatus();
   });
 
+  clampCardSlider();
   updateCardPreview();
 }
 
@@ -203,7 +236,7 @@ function setView(name) {
   state.view = name;
   document.querySelectorAll(".tab").forEach((t) =>
     t.classList.toggle("active", t.dataset.view === name));
-  ["play", "rack", "study", "calibrate"].forEach((v) =>
+  ["intro", "play", "rack", "study", "calibrate"].forEach((v) =>
     ($("view-" + v).hidden = v !== name));
   if (name === "rack") renderRackMenu();
   if (name === "study") renderStudy();
@@ -506,8 +539,14 @@ function init() {
   $("wallNext").addEventListener("click", newRound);
   window.addEventListener("resize", handleResize);
   initHeaderCollapse();
-  // Start on calibration if never calibrated, otherwise go straight to play.
-  setView(state.pxPerMm ? "play" : "calibrate");
+  // First-ever visit sees the intro; afterwards go to calibration if never
+  // calibrated, otherwise straight to play.
+  if (localStorage.getItem(LS_SEEN_INTRO) !== "1") {
+    localStorage.setItem(LS_SEEN_INTRO, "1");
+    setView("intro");
+  } else {
+    setView(state.pxPerMm ? "play" : "calibrate");
+  }
 }
 
 // Keep the crack and gear consistent with the current wall size. If a resize
@@ -516,6 +555,8 @@ let resizeTimer = null;
 function handleResize() {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
+    clampCardSlider();
+    if (state.view === "calibrate" && state.calMethod === "card") updateCardPreview();
     if (state.view !== "play" || !state.target) return;
     if (!state.answered && state.target.width > maxDisplayableMm()) { newRound(); return; }
     renderCrack();
